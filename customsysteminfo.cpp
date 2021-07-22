@@ -15,7 +15,7 @@ int CustomSystemInfo::executeConsoleExpr(QProcess& process, const QString& expr)
     process.waitForFinished();
     return process.exitCode();
 }
-
+//df
 void deleteFirstWordFromString(QString& string){
     QString::const_iterator erase_it = string.cbegin();
         for (auto it = string.cbegin(); it != string.cend(); ++it) {
