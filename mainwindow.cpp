@@ -11,28 +11,21 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     textFont.setPixelSize(20);
+
     createOsInfoBlock();
     createCpuInfoBlock();
     createGpuInfoBlock();
     createRamInfoBlock();
     createHardDriveInfoBlock();
     createLogicalDisksInfoBlock();
+
+    // connect left scroll bar to right scroll bar to
+    // use them as one: if we scroll one, second is
+    // scrolling too and other way round
     connect( ui->textBrowserLeft4->verticalScrollBar(), &QScrollBar::valueChanged, ui->textBrowserRight4->verticalScrollBar(), &QScrollBar::setValue);
     connect( ui->textBrowserRight4->verticalScrollBar(), &QScrollBar::valueChanged, ui->textBrowserLeft4->verticalScrollBar(), &QScrollBar::setValue);
     connect( ui->textBrowserLeft6->verticalScrollBar(), &QScrollBar::valueChanged, ui->textBrowserRight6->verticalScrollBar(), &QScrollBar::setValue);
     connect( ui->textBrowserRight6->verticalScrollBar(), &QScrollBar::valueChanged, ui->textBrowserLeft6->verticalScrollBar(), &QScrollBar::setValue);
-
-}
-
-
-
-void MainWindow::fillTextBrowserWithInfo(QTextBrowser* tb, QVector<QString> info){
-
-
-    tb->setFont(textFont);
-    for (auto& i : info){
-        tb->insertPlainText(i.append('\n'));
-    }
 }
 
 
@@ -46,15 +39,10 @@ void MainWindow::createOsInfoBlock(){
            {"Язык системы:"},
            {"Системная директория:"}
     };
-
-    ui->labelOsTitle->setFont(textFont);
-    ui->labelOsTitle->setText("Характеристики ОС");
-    ui->textBrowserLeft1->setTextColor(QColor(Qt::white));
-    ui->textBrowserRight1->setTextColor(QColor(153,153,153));
-
-    fillTextBrowserWithInfo(ui->textBrowserLeft1, parameters);
-    fillTextBrowserWithInfo(ui->textBrowserRight1, customSystemInfo.getInfoAboutWindows());
+    fillBlock(ui->labelOsTitle,"Характеристики ОС", ui->textBrowserLeft1, ui->textBrowserRight1,
+              0, parameters, customSystemInfo.getInfoAboutWindows());
 }
+
 
 void MainWindow::createCpuInfoBlock(){
     QVector<QString> parameters{
@@ -66,14 +54,10 @@ void MainWindow::createCpuInfoBlock(){
         {"Размер L3 кэша: "},
         {"Размер L2 кэша: "}
     };
-    ui->labelCPUTitle->setFont(textFont);
-    ui->labelCPUTitle->setText("Характеристики CPU");
-    ui->textBrowserLeft2->setTextColor(QColor(Qt::white));
-    ui->textBrowserRight2->setTextColor(QColor(153,153,153));
-
-    fillTextBrowserWithInfo(ui->textBrowserLeft2, parameters);
-    fillTextBrowserWithInfo(ui->textBrowserRight2, customSystemInfo.getInfoAboutCpu());
+    fillBlock(ui->labelCPUTitle,"Характеристики CPU", ui->textBrowserLeft2, ui->textBrowserRight2,
+              0, parameters, customSystemInfo.getInfoAboutCpu());
 }
+
 
 void MainWindow::createGpuInfoBlock(){
     QVector<QString> parameters{
@@ -81,29 +65,11 @@ void MainWindow::createGpuInfoBlock(){
         {"Разрешение: "},
         {"Частота обновления: "}
     };
-//    ui->labelGPUTitle->setFont(textFont);
-//    ui->labelGPUTitle->setText("Характеристики GPU");
-//    ui->textBrowserLeft3->setTextColor(QColor(Qt::white));
-//    ui->textBrowserRight3->setTextColor(QColor(153,153,153));
-
-//    auto info = customSystemInfo.getInfoAboutGpu();
-//    size_t numberOfVideoCards = customSystemInfo.getNumberOfVideoCards();
-//    for (size_t i = 0; i < numberOfVideoCards; ++i){
-
-//        parameters[0] = parameters[0].left(parameters[0].size() - 2);
-//        parameters[0].append(QString::number(i + 1).append(":"));
-
-//        fillTextBrowserWithInfo(ui->textBrowserLeft3, parameters);
-
-//        if (i != numberOfVideoCards - 1)
-//            ui->textBrowserLeft3->insertPlainText("\n");
-//    }
-//    fillTextBrowserWithInfo(ui->textBrowserRight3, info);
-    auto info = customSystemInfo.getInfoAboutGpu();
     fillBlock(ui->labelGPUTitle, "Характеристики GPU", ui->textBrowserLeft3,
               ui->textBrowserRight3, customSystemInfo.getNumberOfVideoCards(),
-              parameters, info);
+              parameters, customSystemInfo.getInfoAboutGpu());
 }
+
 
 void MainWindow::createRamInfoBlock(){
     QVector<QString> parameters{
@@ -112,50 +78,23 @@ void MainWindow::createRamInfoBlock(){
         {"Объем: "},
         {"Скорость: "}
     };
-
-    ui->labelRAMTitle->setFont(textFont);
-    ui->labelRAMTitle->setText("Характеристики RAM");
-    ui->textBrowserLeft4->setTextColor(QColor(Qt::white));
-    ui->textBrowserRight4->setTextColor(QColor(153,153,153));
-
-    auto info = customSystemInfo.getInfoAboutRam();
-    size_t numberOfRam = customSystemInfo.getNumberOfRam();
-    for (size_t i = 0; i < numberOfRam; ++i){
-        parameters[0] = parameters[0].left(parameters[0].size() - 2);
-        parameters[0].append(QString::number(i + 1).append(":"));
-
-        fillTextBrowserWithInfo(ui->textBrowserLeft4, parameters);
-
-        if (i != numberOfRam - 1)
-            ui->textBrowserLeft4->insertPlainText("\n");
-    }
-
-    fillTextBrowserWithInfo(ui->textBrowserRight4, info);
+    fillBlock(ui->labelRAMTitle, "Характеристики RAM", ui->textBrowserLeft4,
+              ui->textBrowserRight4, customSystemInfo.getNumberOfRam(),
+              parameters, customSystemInfo.getInfoAboutRam());
 }
+
 
 void MainWindow::createHardDriveInfoBlock(){
     QVector<QString> parameters{
         {"Жесткий диск 0:"},
         {"Размер: "}
     };
-    ui->labelDrive->setFont(textFont);
-    ui->labelDrive->setText("Характеристики жестких дисков");
+    fillBlock(ui->labelDrive, "Характеристики жестких дисков", ui->textBrowserLeft5,
+              ui->textBrowserRight5, customSystemInfo.getNumberOfHardDrives(),
+              parameters, customSystemInfo.getInfoAboutHardDrive());
 
-    ui->textBrowserLeft5->setTextColor(QColor(Qt::white));
-    ui->textBrowserRight5->setTextColor(QColor(153,153,153));
-    auto info = customSystemInfo.getInfoAboutHardDrive();
-    size_t numberOfHardDrives = customSystemInfo.getNumberOfRam();
-    for (size_t i = 0; i < numberOfHardDrives; ++i){
-        parameters[0] = parameters[0].left(parameters[0].size() - 2);
-        parameters[0].append(QString::number(i + 1).append(":"));
-
-        fillTextBrowserWithInfo(ui->textBrowserLeft5, parameters);
-
-        if (i != numberOfHardDrives - 1)
-            ui->textBrowserLeft5->insertPlainText("\n");
-    }
-    fillTextBrowserWithInfo(ui->textBrowserRight5, info);
 }
+
 
 void MainWindow::createLogicalDisksInfoBlock(){
     QVector<QString> parameters{
@@ -165,50 +104,56 @@ void MainWindow::createLogicalDisksInfoBlock(){
         {"Размер: "},
         {"Свободного места: "}
     };
-    ui->labelLogical->setFont(textFont);
-    ui->labelLogical->setText("Характеристики локальных дисков");
-
-    ui->textBrowserLeft6->setTextColor(QColor(Qt::white));
-    ui->textBrowserRight6->setTextColor(QColor(153,153,153));
-
-    auto info = customSystemInfo.getInfoAboutLogicalDisks();
-    size_t numberOfLogicalDisks = customSystemInfo.getNumberOfLogicalDisks();
-    for (size_t i = 0; i < numberOfLogicalDisks; ++i){
-        parameters[0] = parameters[0].left(parameters[0].size() - 2);
-        parameters[0].append(QString::number(i + 1).append(":"));
-
-        fillTextBrowserWithInfo(ui->textBrowserLeft6, parameters);
-
-        if (i != numberOfLogicalDisks - 1)
-            ui->textBrowserLeft6->insertPlainText("\n");
-
-    }
-    fillTextBrowserWithInfo(ui->textBrowserRight6, info);
-
+    fillBlock(ui->labelLogical, "Характеристики локальных дисков", ui->textBrowserLeft6,
+              ui->textBrowserRight6, customSystemInfo.getNumberOfLogicalDisks(),
+              parameters, customSystemInfo.getInfoAboutLogicalDisks());
 }
+
+
+void MainWindow::fillTextBrowserWithInfo(QTextBrowser* tb, QVector<QString> info){
+    tb->setFont(textFont);
+    for (auto& i : info){
+        tb->insertPlainText(i.append('\n'));
+    }
+}
+
 
 void MainWindow::fillBlock(
         QLabel* label, const QString& labelText, QTextBrowser* browserLeft,
         QTextBrowser* browserRight, size_t numberOfObjects, QVector<QString>& parameters,
-        QVector<QString>& info
-        )
-{
+        QVector<QString>&& info
+        ){
     label->setFont(textFont);
     label->setText(labelText);
     browserLeft->setTextColor(QColor(Qt::white));
     browserRight->setTextColor(QColor(153,153,153));
     for (size_t i = 0; i < numberOfObjects; ++i){
+        // This 2 lines of code replace two last symbols of the first
+        // string in QVector<QString> parameters with int count and
+        // char(':'). E.g. parameters[0] = "Видеокарта 0:".
+        // In for loop this code transformates it to:
+        // "Видеокарта 1:" and "Видеокарта 2:"
         parameters[0] = parameters[0].left(parameters[0].size() - 2);
         parameters[0].append(QString::number(i + 1).append(":"));
 
         fillTextBrowserWithInfo(browserLeft, parameters);
 
+        // devide parameters by \n in for loop
         if (i != numberOfObjects - 1)
             browserLeft->insertPlainText("\n");
 
     }
+    // if computer doesn't have 2 (or more) objects and
+    // for loop wasn't created. Need this for:
+    // getInfoAboutCpu() and getInfoAboutWindows()
+    if (numberOfObjects == 0)
+         fillTextBrowserWithInfo(browserLeft, parameters);
+
+
     fillTextBrowserWithInfo(browserRight, info);
 }
+
+
 MainWindow::~MainWindow()
 {
     delete ui;

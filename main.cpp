@@ -5,7 +5,6 @@
 #include "darkpalette.h"
 int main(int argc, char *argv[])
 {
-    QTextCodec::setCodecForLocale(QTextCodec::codecForName("IBM 866"));
     QApplication a(argc, argv);
     darkPalette palette;
     auto darkPollete = palette.setDarkPalette();

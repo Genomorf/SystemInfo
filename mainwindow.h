@@ -26,7 +26,7 @@ public:
     void createLogicalDisksInfoBlock();
     void fillBlock(QLabel *label, const QString &labelText, QTextBrowser *browserLeft,
                    QTextBrowser *browserRight, size_t numberOfObjects, QVector<QString>& parameters,
-                   QVector<QString>& info);
+                   QVector<QString>&& info);
 private:
     Ui::MainWindow *ui;
     QFont textFont;

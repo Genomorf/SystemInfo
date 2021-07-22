@@ -5,17 +5,20 @@
 #include <QTranslator>
 #include <QRegExp>
 
+
 CustomSystemInfo::CustomSystemInfo()
 {
      codec = QTextCodec::codecForName("IBM 866"); //IBM 866 to decode windows symbols
 }
+
 
 int CustomSystemInfo::executeConsoleExpr(QProcess& process, const QString& expr){
     process.startCommand(expr);
     process.waitForFinished();
     return process.exitCode();
 }
-//df
+
+
 void deleteFirstWordFromString(QString& string){
     QString::const_iterator erase_it = string.cbegin();
         for (auto it = string.cbegin(); it != string.cend(); ++it) {
@@ -27,28 +30,45 @@ void deleteFirstWordFromString(QString& string){
     string.erase(string.cbegin(), erase_it);
 }
 
+
 QString CustomSystemInfo::getDataFromConsole(const QString& expr, bool deleteFirstWord=true){
     // QProcess process in .h;
-    if (executeConsoleExpr(process, expr)){ // if exit code of process != 0
+    if (executeConsoleExpr(process, expr)){ // if exit code from process != 0
         return "error";
     }
+    // decode russian symbols from console output
     QString output = codec->toUnicode(process.readAllStandardOutput().simplified());
     if (deleteFirstWord)
         deleteFirstWordFromString(output);
     return output;
 }
 
+// add one space before first char of string to
+// split it by the separator. E.g:
+// " Name=name"  - can split      "Name=name"   - can't split
+// " Name=name"    by " Name=".   " Name=name"   by "Name=" or " Name=".
 QVector<QString> CustomSystemInfo::splitWMIoutput(const QString& query, const QString& sep){
     return (" " + getDataFromConsole(query, false)).split(sep);
 }
 
+
 QVector<QString> CustomSystemInfo::getInfoAboutLogicalDisks(){
     QVector<QString> result;
+    // if computer has 2 (or more) disks, then wmic output will have
+    // nonseparate string with information about both disks. E.g.:
+    // > wmic logicaldisk get caption
+    // Caption
+    // C:
+    // D:
+    // hence we need to split this string and get info about each disk
+    // separartely in for loop
     auto diskNamesSplitted = splitWMIoutput("wmic logicaldisk get caption /format:list", " Caption=");
+    // d.begin() + 1 -> because first object is " "
+    diskNamesSplitted = QStringList(diskNamesSplitted.begin() + 1, diskNamesSplitted.end());
     result.reserve(5 * diskNamesSplitted.size());
-    numberOfLogicalDrives = diskNamesSplitted.size() - 1;
+    numberOfLogicalDrives = diskNamesSplitted.size();
 
-    for (auto it = diskNamesSplitted.begin() + 1; it != diskNamesSplitted.end(); ++it){
+    for (auto it = diskNamesSplitted.begin(); it != diskNamesSplitted.end(); ++it){
 
         QString name        = QString("wmic logicaldisk where caption='%1' get Name").arg(*it); // C:
         QString description = QString("wmic logicaldisk where caption='%1' get Description").arg(*it); // локальный диск
@@ -62,6 +82,7 @@ QVector<QString> CustomSystemInfo::getInfoAboutLogicalDisks(){
         result << QString::number(getDataFromConsole(size).toLongLong() >> 30).append(" GB");
         result << QString::number(getDataFromConsole(freeSpace).toLongLong() >> 30).append(" GB");
 
+        // add empty string to result to use it like spacing, that divides outputs
         if (it != diskNamesSplitted.end() - 1)
             result << " ";
     }
@@ -75,9 +96,10 @@ size_t CustomSystemInfo::getNumberOfLogicalDisks(){
 QVector<QString> CustomSystemInfo::getInfoAboutHardDrive(){
     QVector<QString> result;
     auto driveNamesSplitted = splitWMIoutput("wmic diskdrive get caption /format:list", " Caption=");
+    driveNamesSplitted = QStringList(driveNamesSplitted.begin() + 1, driveNamesSplitted.end());
     result.reserve(2 * driveNamesSplitted.size());
-    numberOfHardDrives = driveNamesSplitted.size() - 1;
-    for (auto it = driveNamesSplitted.begin() + 1; it != driveNamesSplitted.end(); ++it){
+    numberOfHardDrives = driveNamesSplitted.size() ;
+    for (auto it = driveNamesSplitted.begin(); it != driveNamesSplitted.end(); ++it){
 
         QString model = QString("wmic diskdrive where caption='%1' get model").arg(*it); // SSD ....
         QString size  = QString("wmic diskdrive where caption='%1' get size").arg(*it); // 250 GB
@@ -101,10 +123,11 @@ QVector<QString> CustomSystemInfo::getInfoAboutRam(){
     QVector<QString> result;
 
     auto RAMcardNamesSplitted = splitWMIoutput("wmic memorychip get banklabel /format:list", " BankLabel=");
+    RAMcardNamesSplitted = QStringList(RAMcardNamesSplitted.begin() + 1, RAMcardNamesSplitted.end());
     result.reserve(4 * RAMcardNamesSplitted.size());
-    numberOfRam = RAMcardNamesSplitted.size() - 1;
+    numberOfRam = RAMcardNamesSplitted.size();
 
-    for (auto it = RAMcardNamesSplitted.begin() + 1; it != RAMcardNamesSplitted.end(); ++it){
+    for (auto it = RAMcardNamesSplitted.begin(); it != RAMcardNamesSplitted.end(); ++it){
 
          QString tag          = QString("wmic memorychip where banklabel='%1' get tag").arg(*it); // физическая память
          QString manufacturer = QString("wmic memorychip where banklabel='%1' get manufacturer").arg(*it); // kingston
@@ -131,10 +154,11 @@ QVector<QString> CustomSystemInfo::getInfoAboutGpu(){
     QVector<QString> result;
 
     auto videocardNamesSplitted = splitWMIoutput("wmic PATH Win32_videocontroller get name /format:list", " Name=");
+    videocardNamesSplitted = QStringList(videocardNamesSplitted.begin() + 1, videocardNamesSplitted.end());
     result.reserve(3 * videocardNamesSplitted.size());
-    numberOfVideoCards = videocardNamesSplitted.size() - 1;
+    numberOfVideoCards = videocardNamesSplitted.size();
 
-    for (auto it = videocardNamesSplitted.begin() + 1; it != videocardNamesSplitted.end(); ++it){
+    for (auto it = videocardNamesSplitted.begin(); it != videocardNamesSplitted.end(); ++it){
 
         QString vName = QString("wmic PATH Win32_videocontroller where name='%1' get name").arg(*it); // nvidia gtx 1060
         QString resX  = QString("wmic PATH Win32_videocontroller where name='%1' get CurrentHorizontalResolution").arg(*it); // 1920x1080
