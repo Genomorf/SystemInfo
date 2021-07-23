@@ -1,8 +1,9 @@
 #ifndef CUSTOMSYSTEMINFO_H
 #define CUSTOMSYSTEMINFO_H
 
-#include <QtWidgets>
 #include <QTextCodec>
+#include <QProcess>
+
 class CustomSystemInfo
 {
 public:

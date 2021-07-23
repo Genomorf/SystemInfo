@@ -1,8 +1,9 @@
 #include "mainwindow.h"
-#include <windows.h>
 #include <QApplication>
 #include <QTextCodec>
 #include "darkpalette.h"
+#include <chrono>
+#include <iostream>
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);

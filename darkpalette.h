@@ -1,8 +1,7 @@
 #ifndef DARKPALETTE_H
 #define DARKPALETTE_H
 
-#include <QObject>
-#include <QWidget>
+#include <QPalette>
 
 class darkPalette
 {

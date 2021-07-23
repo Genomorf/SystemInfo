@@ -1,9 +1,6 @@
 #include "customsysteminfo.h"
-#include <QtWidgets>
 #include <QStringLiteral>
 #include <QtCore5Compat/QTextCodec>
-#include <QTranslator>
-#include <QRegExp>
 
 
 CustomSystemInfo::CustomSystemInfo()
