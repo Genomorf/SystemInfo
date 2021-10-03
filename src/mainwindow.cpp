@@ -3,7 +3,7 @@
 #include <customsysteminfo.h>
 #include <QtCore5Compat/QTextCodec>
 #include <QScrollBar>
-
+#include <QtConcurrent/QtConcurrentRun>
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -11,14 +11,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     textFont.setPixelSize(20);
-
     createOsInfoBlock();
     createCpuInfoBlock();
     createGpuInfoBlock();
     createRamInfoBlock();
     createHardDriveInfoBlock();
     createLogicalDisksInfoBlock();
-
     // connect left scroll bar to right scroll bar to
     // use them as one: if we scroll one, second is
     // scrolling too and other way round
